@@ -1,33 +1,6 @@
 require 'spec_helper'
+require_relative '../StringCalculator'
 
-class StringCalculator
-  DELIMETER_PREFIX = '//'.freeze
-
-  def run(input)
-    raise ArgumentError.new('Error') if input.end_with?("n", ",")
-
-    delimeter = /[\\n,]/
-    if has_custom_delimeter?(input)
-      delimeter_regex, input = input.split(/\\n/)
-      delimeter = extract_delimeter_character(delimeter_regex)
-    end
-
-    sum(input, delimeter)
-  end
-
-  def sum(input, delimeter)
-    input.split(delimeter)
-         .inject(0) { |acc, n| acc += n.to_i }
-  end
-
-  def has_custom_delimeter?(input)
-    input.start_with?(DELIMETER_PREFIX)
-  end
-
-  def extract_delimeter_character(delimeter_regex)
-    delimeter_regex.gsub(%r{//}, '')
-  end
-end
 
 RSpec.describe StringCalculator do
   subject(:calculator) { StringCalculator.new }
@@ -85,14 +58,28 @@ RSpec.describe StringCalculator do
     end
   end
 
-  context "argment string ended with either ',' or '\n'" do
-    [
-      { input: '1,2\n' },
-      { input: '10,\n' },
-      { input: '100,' }
-    ].each do |example|
-      it 'should raise InvalidArgument exception' do
-        expect { calculator.run(example[:input]) }.to raise_error(ArgumentError)
+  context 'argument is invalid' do
+    context "argment string ended with either ',' or '\n'" do
+      [
+        { input: '1,2\n' },
+        { input: '10,\n' },
+        { input: '100,' }
+      ].each do |example|
+        it 'should raise InvalidArgument exception' do
+          expect { calculator.run(example[:input]) }.to raise_error(ArgumentError)
+        end
+      end
+    end
+
+    context "argment string ended with either ',' or '\n'" do
+      [
+        { input: '-1,2\n' },
+        { input: '//%\n-1%2%3' },
+        { input: '//$\n1$2$3$-10' }
+      ].each do |example|
+        it 'should raise InvalidArgument exception' do
+          expect { calculator.run(example[:input]) }.to raise_error(ArgumentError)
+        end
       end
     end
   end
@@ -102,6 +89,18 @@ RSpec.describe StringCalculator do
       { input: '//;\n1;2', output: 3 },
       { input: '//%\n1%2%3', output: 6 },
       { input: '//$\n1$2$3$10', output: 16 }
+    ].each do |example|
+      it 'should return the sum of numbers' do
+        expect(calculator.run(example[:input])).to eq(example[:output])
+      end
+    end
+  end
+
+  context 'numbers are bigger than 1000' do
+    [
+      { input: '1,10,1000', output: 1011 },
+      { input: '1,10,1001', output: 11 },
+      { input: '10,30,2000', output: 40 }
     ].each do |example|
       it 'should return the sum of numbers' do
         expect(calculator.run(example[:input])).to eq(example[:output])
