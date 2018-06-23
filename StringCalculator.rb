@@ -35,7 +35,12 @@ class StringCalculator
     end
   
     def extract_delimeter_character(delimeter_regex)
-      delimeter_regex.gsub(%r{//}, '')
+      multiple_chars_delimeter = delimeter_regex.match(/\/\/\[(.*)\]/)
+
+      if multiple_chars_delimeter
+        multiple_chars_delimeter.captures.first
+      else
+        delimeter_regex.gsub(%r{[/,[,]]}, '')
+      end
     end
   end
-  
